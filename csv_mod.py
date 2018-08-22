@@ -12,8 +12,8 @@ class Csv_mod():
         
         self.path = ''
         self.data = ''        
-        self.fields_names = ['field1', 'field2']
-        self.main()       
+        self.headers = ['field1', 'field2']
+        #self.main()       
     
     def write(self, path, data):
         '''Write file to .csv file '''
@@ -24,15 +24,15 @@ class Csv_mod():
             c = 0
             
         with open(self.path, 'a') as file:                       
-            csv_write = csv.DictWriter(file, fieldnames=self.fields_names)
+            csv_write = csv.DictWriter(file, fieldnames=self.headers)
             if not c:
                 csv_write.writeheader()
-            d = {key: val for key, val in zip(self.fields_names, self.data)}
+            d = {key: val for key, val in zip(self.headers, self.data)}
             csv_write.writerow(d)
             print('data was writer')
             
     def main(self):        
-        if len(self.fields_names) < 2:
+        if len(self.headers) < 2:
             print('append header to filed_names')
         else:
             if self.path and self.data:
@@ -42,6 +42,3 @@ class Csv_mod():
                         
 ##if __name__ == '__main__':
 ##    pass
-##path = '/home/pi/Desktop/czesc.csv'
-##data = ['131245123', 'cokolwiek']
-##start = Csv_mod(path, data)
