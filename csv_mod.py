@@ -26,7 +26,7 @@ class Csv_mod():
             csv_write = csv.DictWriter(file, fieldnames=headers)
             if not c:
                 csv_write.writeheader()
-            d = {key: val for key, val in zip(self.headers, data)}
+            d = {key: val for key, val in zip(headers, data)}
             csv_write.writerow(d)
             print('data was writer')            
         return path.split('/')[-1]
