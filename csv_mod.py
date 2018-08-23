@@ -12,7 +12,7 @@ class Csv_mod():
         
         self.path = ''
         self.data = ''        
-        self.headers = ['field1', 'field2']              
+        self.headers = ['field1','field2']              
     
     def write(self, path, data, headers):
         '''Write file to .csv file '''        
@@ -30,15 +30,21 @@ class Csv_mod():
             csv_write.writerow(d)
             print('data was writer')            
         return path.split('/')[-1]
+    
+    def raise_errors(self,):
+        if len(self.headers) < 2:            
+            raise ValueError('varible headers must be grater or equal 2')                     
+        if not self.path:
+            raise FileNotFoundError('path are not set')
+        if not self.data:
+            raise FileExistsError('data are not set')        
             
-    def main(self):        
-        if len(self.headers) < 2:
-            print('append header to filed_names')
-        else:
-            if self.path and self.data:
-                print(self.write(self.path, self.data, self.headers))
-            else:
-                print('set path and data')
+    def main(self):
+        self.raise_errors()           
+        print(self.write(self.path, self.data, self.headers))
+        
+        
                         
-##if __name__ == '__main__':
-##    pass
+if __name__ == '__main__':
+    start = Csv_mod()
+    start.main()

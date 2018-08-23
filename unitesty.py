@@ -4,8 +4,13 @@ import os
 import csv
 
 class Sensor_tests(unittest.TestCase):
+    mod = Csv_mod()
     
     def test_simple_csv_test_write_func(self):
+        '''write function test
+            in first part we westing inherence file at desktop
+            second part code check what is in file and compare writed data '''
+        print(self.mod.__dict__)
         sample_path = '/home/pi/Desktop/test.csv'
         data = ['third', 'fourth']
         headers = Csv_mod().headers
@@ -24,8 +29,27 @@ class Sensor_tests(unittest.TestCase):
                 if line == dict_with_saved_data:
                     print('ok')
                 else:
-                    print('wrong')
+                    print('wrong')        
+    
+    def test_all_raise_errors(self):
+        errors = [FileNotFoundError, FileExistsError, ValueError]        
+        for i, error in enumerate(errors):
+            if i == 0:
+                with self.assertRaises(error):
+                    self.mod.raise_errors()
                     
+            elif i == 1:
+                self.mod.path = '/home/pi/Desktop/test.csv'
+                with self.assertRaises(error):
+                    self.mod.raise_errors()
+                    
+            elif i == 2:
+                print('pierwszy')
+                self.mod.headers = ['f1']
+                with self.assertRaises(error):
+                    self.mod.raise_errors()       
+        
+        
 unittest.main()
     
 
