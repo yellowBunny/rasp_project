@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 import sys
-sys.path.append('/home/pi/Desktop/examples/sensor_libs/MFRC522-python')
+#sys.path.append('/home/pi/Desktop/examples/sensor_libs/MFRC522-python')
+sys.path.append('/home/pi/Desktop/exp/MFRC522-python')
 sys.path.append('/home/pi/Desktop/rasp_project')
 import SimpleMFRC522
 from time import sleep
@@ -17,8 +18,7 @@ class Rfid():
     
     def __init__(self):
         self.set_pins()
-        self.csv_configure()
-        
+        self.csv_configure()        
     
     def set_pins(self):        
         GPIO.setmode(GPIO.BCM)
@@ -46,6 +46,7 @@ class Rfid():
         if name:
             name = name.split()[-1]        
         print(id, '--->', name)
+        print(type(id), type(name))
         return id, name
 
     def open_lock(self, name):
@@ -69,21 +70,28 @@ class Rfid():
         if c >= 5:            
             print('ALLARM!!')
             sleep(5)
-            c = 0
         sleep(.5)
         GPIO.output(self.allarm_pin, 0)    
         return 1            
-           
+    
+    def let_in(self, name, id, c):
+        if name in self.allow_to:
+            self.open_lock(name)
+            return 0
+        else:
+            self.warning(id, name, c)
+            c += 1
+            return c    
+    
     def main(self):
         c = 0        
         try:        
             while True:
                 print('Read mode')
                 id, name = self.read_card()
-                if name in self.allow_to:
-                    c = self.open_lock(name)
-                else:                
-                    c += self.warning(id, name, c)
+                c = self.let_in(name, id, c)
+                if c >5:
+                    c = 0
                 sleep(.5)
                 
         except KeyboardInterrupt:
