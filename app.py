@@ -1,11 +1,11 @@
 import tkinter as tk
 import datetime
-from dioda import set_pin as pin
+#from dioda import set_pin as pin
 import random
 
 class MyListBox(tk.Listbox):
     def __init__(self, window, n, width, height):
-        tk.Listbox.__init(self, master=window, width=width, height=height)
+        tk.Listbox.__init__(self, master=window, width=width, height=height)
         for i in range(n):
             self.insert(i,i)
             
@@ -45,8 +45,10 @@ class MyApp:
     PIN_OUTSIDE = 12
     PIN_SALON = 26
     PIN_POKOJ1 = 20
+    PIN_POKOJ2 = '22'
+    PIN_KUCHNIA = '23'
 
-    temp_container = [0,0,0]
+    temp_container = [0,0,0,0,0,0]
     
     def __init__(self):
         self.main()
@@ -137,12 +139,12 @@ class MyApp:
             if shut_down <= current_time <= swith_on:
                 status = 1
                 print(status)
-                pin(self.PIN_SOCKETS,status)
+                #pin(self.PIN_SOCKETS,status)
                 return True
             else:
                 status = 0
                 print(status)
-                pin(self.PIN_SOCKETS,status)
+                #pin(self.PIN_SOCKETS,status)
                 return False
         except TypeError:
             print('ustaw poprawnie czas')
@@ -164,44 +166,65 @@ class MyApp:
         time_off, time_on = self.set_time(self.opt_men1, self.opt_men2, self.opt_men3, self.opt_men4)        
         self.time_swith_func(time, time_off, time_on)
         #try read temp
-        self.insert_to_temp_container(time)
+        self.alternative_f(time)
+        # self.insert_to_temp_container(time)
         ###Update root window delay 1s###
+
         self.root.after(1000, self.update_time)
         
-    def outside_func(self):
+    def outside_ds18b20(self):
         'to read temp from module'
+        # print('ds18b20 here')
         return random.randint(0,100)
-    
+
+    def outside_DHT11(self):
+        # print('DHT11 here')
+        return random.randint(-100,0)
+
+
     def insert_to_temp_container(self,time):
         '''This function insert to container reded temperature with deleay between temp sensors'''
         print(time.strftime('%X'))
         if time.second == 0:
             print(time.second,'ds18b20')
-            ds18b20 = self.outside_func()
+            ds18b20 = self.outside_ds18b20()
             print('zapisano {}'.format(ds18b20))
             self.temp_container[0] = ds18b20
             print(self.temp_container)
         elif time.second == 5:
             print(time.second,'dth11')
-            dht11 = self.outside_func()
+            dht11 = self.outside_DHT11()
             print('zapisano {}'.format(dht11))
             self.temp_container[1] = dht11            
             print(self.temp_container)
         elif time.second == 10:
             print(time.second,'dth11')
-            dht11 = self.outside_func()
+            dht11 = self.outside_DHT11()
             print('zapisano {}'.format(dht11))
-            self.temp_container[2] = dht11 
-            
+            self.temp_container[2] = dht11
         self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3)
-            
+
+    def alternative_f(self, time):
+        print(time.second)
+        f = lambda t: int(t * .1) if t * .1 % 1 == 0 else -1
+        is_tenth = f(time.second)
+        print(is_tenth)
+        if is_tenth == 0 or is_tenth == 1:
+            print('ds18b20')
+            ds18b20 = self.outside_ds18b20()
+            self.temp_container[is_tenth] = ds18b20
+            print(self.temp_container)
+        elif 1 < is_tenth < 6:
+            print('dth11')
+            dht11 = self.outside_DHT11()
+            self.temp_container[is_tenth] = dht11
+            print(self.temp_container)
+        self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3)
+
             
     def update_labels_with_temp(self,*labels):        
         for temp, lb in zip(self.temp_container, labels):
             lb.config(text='{} C'.format(temp))
-            
-        
-        
     
         
     def main(self):
