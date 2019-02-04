@@ -45,7 +45,8 @@ class MyApp:
     PIN_OUTSIDE = 12
     PIN_SALON = 26
     PIN_POKOJ1 = 20
-    temp_container = [0,0]
+
+    temp_container = [0,0,0]
     
     def __init__(self):
         self.main()
@@ -186,10 +187,16 @@ class MyApp:
             print('zapisano {}'.format(dht11))
             self.temp_container[1] = dht11            
             print(self.temp_container)
-        self.f(self.view_temp1, self.view_temp2)
+        elif time.second == 10:
+            print(time.second,'dth11')
+            dht11 = self.outside_func()
+            print('zapisano {}'.format(dht11))
+            self.temp_container[2] = dht11 
             
-    def f(self,*labels):
-        #print(labels)
+        self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3)
+            
+            
+    def update_labels_with_temp(self,*labels):        
         for temp, lb in zip(self.temp_container, labels):
             lb.config(text='{} C'.format(temp))
             
