@@ -1,9 +1,8 @@
 import RPi.GPIO as GPIO
 import sys
-#sys.path.append('/home/pi/Desktop/examples/sensor_libs/MFRC522-python')
-sys.path.append('/home/pi/Desktop/exp/MFRC522-python')
-sys.path.append('/home/pi/Desktop/rasp_project')
-import SimpleMFRC522
+##sys.path.append('/home/pi/Desktop/exp/MFRC522python')
+##sys.path.append('/home/pi/Desktop/rasp_project')
+from MFRC522python import SimpleMFRC522
 from time import sleep
 from datetime import datetime
 from csv_mod import Csv_mod
@@ -75,6 +74,7 @@ class Rfid():
         return 1            
     
     def let_in(self, name, id, c):
+        '''check if guest is allow to enter or is not allow to '''
         if name in self.allow_to:
             self.open_lock(name)
             return 0
@@ -97,6 +97,7 @@ class Rfid():
         except KeyboardInterrupt:
             GPIO.cleanup()        
             print('quit from program')
+            
             
 if __name__ == '__main__':
     start = Rfid()
