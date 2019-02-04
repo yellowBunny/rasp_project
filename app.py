@@ -1,6 +1,6 @@
 import tkinter as tk
 import datetime
-from dioda import set_pin
+from dioda import set_pin as pin
 
 class MyListBox(tk.Listbox):
     def __init__(self, window, n, width, height):
@@ -36,7 +36,8 @@ class MyApp:
     frame_time = tk.Frame(master=root)
     frame_time.grid(row=0,column=2, stick='N')
     frame_other = tk.Frame(master=root)
-    frame_other.grid(row=0)    
+    frame_other.grid(row=0)
+    PIN_SOCKETS = 21
     
     def __init__(self):
         self.wigets()
@@ -81,22 +82,22 @@ class MyApp:
         self.view_temp5 = tk.Label(master=self.frame_other, text='temp5 ')
         self.view_temp5.grid(row=5, column=4)
         self.view_temp6 = tk.Label(master=self.frame_other, text='temp6 ')
-        self.view_temp6.grid(row=6, column=4)   
-        
+        self.view_temp6.grid(row=6, column=4)        
         
         ####OptionMenu####
-        opt_men1 = MyOptionMenu(window=self.frame_other, title='godzina', n=24, font=fonts[0])
-        opt_men1.grid(row=1,column=0)
-        opt_men2 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
-        opt_men2.grid(row=1, column=1)
-        opt_men3 = MyOptionMenu(window=self.frame_other, title='godzina', n=24, font=fonts[0])
-        opt_men3.grid(row=2,column=0)
-        opt_men4 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
-        opt_men4.grid(row=2,column=1)
+        self.opt_men1 = MyOptionMenu(window=self.frame_other, title='godzina', n=24, font=fonts[0])
+        self.opt_men1.grid(row=1,column=0)
+        self.opt_men2 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
+        self.opt_men2.grid(row=1, column=1)
+        self.opt_men3 = MyOptionMenu(window=self.frame_other, title='godzina', n=24, font=fonts[0])
+        self.opt_men3.grid(row=2,column=0)
+        self.opt_men4 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
+        self.opt_men4.grid(row=2,column=1)
         ###BUTTONS###
-        b_set_time = tk.Button(self.frame_other, text='Ustaw czas',
-                               command=lambda: self.set_time(opt_men1, opt_men2, opt_men3, opt_men4))
-        b_set_time.grid(row=4,column=0)
+##        b_set_time = tk.Button(self.frame_other, text='Ustaw czas',
+##                               command=lambda: self.set_time(self.opt_men1, self.opt_men2, self.opt_men3, self.opt_men4))
+##        b_set_time.grid(row=4,column=0)   
+   
         
     def set_time(self, *arg):
         try:
@@ -104,22 +105,53 @@ class MyApp:
             s_off_h, s_off_m, s_on_h, s_on_m= func(arg)
             time1= datetime.time(hour=s_off_h, minute=s_off_m)
             time2 = datetime.time(hour=s_on_h, minute=s_on_m)
-            self.lb_show_status.config(text='OFF {}\nON {}'.format(time1, time2), font=('Arial', 12), fg='green')            
-        except ValueError:
-            print('set all cells')
+            self.lb_show_status.config(text='Gniazda OFF {}\nGniazda ON {}'.format(time1, time2), font=('Arial', 12), fg='green')            
+        except ValueError:            
             self.lb_show_status.config(text='uzupełnij pola', fg='red')
+            return 0,0
         except:
             print('Other err in set_time!!')
-        else:
-            print(time1, time2)
-            return time1, time2         
+            pass
+        else:            
+            return time1, time2        
         
+    def time_swith_func(self, current_time, shut_down, swith_on):
+        '''this function swith releay to on and off depends on given arg.
+            shut_down - given time in hours e.g 1:00 to open circuit
+            swith_on - given time in hours e.g. 7:00 to close circuit
+            (open circuit - sockets in room are without current otherwise sockets are on voltage)'''
+##        print(current_time, shut_down, swith_on)
+        
+        try:
+            if shut_down <= current_time <= swith_on:
+                status = 1
+                print(status)
+                pin(self.PIN_SOCKETS,status)
+                return True
+            else:
+                status = 0
+                print(status)
+                pin(PIN_SOCKETS,status)
+                return False
+        except TypeError:
+            print('ustaw poprawnie czas')
+            pass
+        except:
+            print('other err')           
+            
     
     def update_time(self):
-        time = datetime.datetime.now().time().strftime('%X')
-        date = datetime.datetime.now().date().strftime('{}/{}/{}'.format('%d','%m','%y'))
+        ###Curent time in datetime class###
+        time = datetime.datetime.now().time()
+        ###Current date in str###
+        date = datetime.datetime.now().date().strftime('{}/{}/{}'.format('%d','%m','%Y'))
+        ###config time labels###
         self.lb_show_date.config(text=date)     
-        self.lb_show_time.config(text=time)
+        self.lb_show_time.config(text=time.strftime('%X'))
+        ##confg socket switches##
+        time_off, time_on = self.set_time(self.opt_men1, self.opt_men2, self.opt_men3, self.opt_men4)        
+        self.time_swith_func(time, time_off, time_on)
+        ###Update root window delay 1s###
         self.root.after(1000, self.update_time)
     
 start = MyApp()
