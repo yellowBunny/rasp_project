@@ -45,8 +45,9 @@ class MyApp:
     PIN_OUTSIDE = 12
     PIN_SALON = 26
     PIN_POKOJ1 = 20
-    PIN_POKOJ2 = '22'
-    PIN_KUCHNIA = '23'
+    PIN_POKOJ2 = 16
+    PIN_KUCHNIA = 12
+
 
     temp_container = [0,0,0,0,0,0]
     
@@ -84,15 +85,15 @@ class MyApp:
         ##view temp in rooms##
         self.view_temp1 = tk.Label(master=self.frame_other, text='temp1')
         self.view_temp1.grid(row=1, column=4)
-        self.view_temp2 = tk.Label(master=self.frame_other, text='temp2 ')
+        self.view_temp2 = tk.Label(master=self.frame_other, text='temp2')
         self.view_temp2.grid(row=2, column=4)
-        self.view_temp3 = tk.Label(master=self.frame_other, text='temp3 ')
+        self.view_temp3 = tk.Label(master=self.frame_other, text='temp3')
         self.view_temp3.grid(row=3, column=4)
-        self.view_temp4 = tk.Label(master=self.frame_other, text='temp4 ')
+        self.view_temp4 = tk.Label(master=self.frame_other, text='temp4')
         self.view_temp4.grid(row=4, column=4)
-        self.view_temp5 = tk.Label(master=self.frame_other, text='temp5 ')
+        self.view_temp5 = tk.Label(master=self.frame_other, text='temp5')
         self.view_temp5.grid(row=5, column=4)
-        self.view_temp6 = tk.Label(master=self.frame_other, text='temp6 ')
+        self.view_temp6 = tk.Label(master=self.frame_other, text='None')
         self.view_temp6.grid(row=6, column=4)   
         
         
@@ -166,8 +167,7 @@ class MyApp:
         time_off, time_on = self.set_time(self.opt_men1, self.opt_men2, self.opt_men3, self.opt_men4)        
         self.time_swith_func(time, time_off, time_on)
         #try read temp
-        self.alternative_f(time)
-        # self.insert_to_temp_container(time)
+        self.insert_to_temp_container(time)
         ###Update root window delay 1s###
 
         self.root.after(1000, self.update_time)
@@ -182,44 +182,26 @@ class MyApp:
         return random.randint(-100,0)
 
 
-    def insert_to_temp_container(self,time):
-        '''This function insert to container reded temperature with deleay between temp sensors'''
-        print(time.strftime('%X'))
-        if time.second == 0:
-            print(time.second,'ds18b20')
-            ds18b20 = self.outside_ds18b20()
-            print('zapisano {}'.format(ds18b20))
-            self.temp_container[0] = ds18b20
-            print(self.temp_container)
-        elif time.second == 5:
-            print(time.second,'dth11')
-            dht11 = self.outside_DHT11()
-            print('zapisano {}'.format(dht11))
-            self.temp_container[1] = dht11            
-            print(self.temp_container)
-        elif time.second == 10:
-            print(time.second,'dth11')
-            dht11 = self.outside_DHT11()
-            print('zapisano {}'.format(dht11))
-            self.temp_container[2] = dht11
-        self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3)
-
-    def alternative_f(self, time):
+    def insert_to_temp_container(self, time):
+        '''this function insert readed temperature for sensor to list called temp_container.
+        after time is updated every 10 second temperature is readed by two functions:
+        func to read ds18b20 sensor - two first cells in list [:2]
+        func to read dht11 sensor -  other cells [2:]'''
         print(time.second)
         f = lambda t: int(t * .1) if t * .1 % 1 == 0 else -1
         is_tenth = f(time.second)
-        print(is_tenth)
         if is_tenth == 0 or is_tenth == 1:
             print('ds18b20')
             ds18b20 = self.outside_ds18b20()
             self.temp_container[is_tenth] = ds18b20
             print(self.temp_container)
-        elif 1 < is_tenth < 6:
+        elif 1 < is_tenth < 5:
             print('dth11')
             dht11 = self.outside_DHT11()
             self.temp_container[is_tenth] = dht11
             print(self.temp_container)
-        self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3)
+        self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3,
+                                     self.view_temp4, self.view_temp5)
 
             
     def update_labels_with_temp(self,*labels):        
