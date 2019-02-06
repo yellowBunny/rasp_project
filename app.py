@@ -11,7 +11,7 @@ class MyListBox(tk.Listbox):
             
 
 class MyOptionMenu(tk.OptionMenu):
-    def __init__(self, window, title, n, font, flag=0):
+    def __init__(self, window, title, n, font, flag=0, color='alice blue'):
         self.var = tk.StringVar()
         self.var.set(title)
         if flag:
@@ -19,8 +19,8 @@ class MyOptionMenu(tk.OptionMenu):
         else:
             content = self.is_tuple(n)
         tk.OptionMenu.__init__(self, window, self.var, *content)
-        self.config(font=font)
-        self['menu'].config(font=font)
+        self.config(font=font, bg=color)
+        self['menu'].config(font=font, bg=color)
         
     def get_data(self):
         return self.var.get()
@@ -106,7 +106,7 @@ class MyApp:
         self.view_temp6.grid(row=6, column=4)
         ##view seted temperature in each room##
         self.view_seted_temp = tk.Label(master=self.frame_time,
-                                        text='Ustawienie\nSalon: {}\nPokój1: {}\nLazienka: {}'.format('n/a','n/a','n/a'))
+                                        text='Ustawienie\nSalon: {}\nPokój1: {}\nLazienka: {}'.format('n/a','n/a','n/a'), font= fonts[0])
         self.view_seted_temp.grid(row=3, column=0, stick='W')
         
         
@@ -121,13 +121,18 @@ class MyApp:
         self.opt_men4 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
         self.opt_men4.grid(row=2,column=1)
         ##choose temperature when heaters valve turn on or turn off
+        #colors#
+        heat = 'tomato'
+        cold = 'light sky blue'
         temp_range = (19,24)
         self.opt_heater1 = MyOptionMenu(window=self.frame_other, title='salon', n=temp_range, font=fonts[1])
         self.opt_heater1.grid(row=2, column=5)
         self.opt_heater2 = MyOptionMenu(window=self.frame_other, title='Pokój1', n=temp_range, font=fonts[1])
         self.opt_heater2.grid(row=3,column=5)
-        self.opt_heater3 = MyOptionMenu(window=self.frame_other, title='Kuchnia', n=temp_range, font=fonts[1])
+        self.opt_heater3 = MyOptionMenu(window=self.frame_other,
+                                        title='Kuchnia', n=temp_range, font=fonts[1])
         self.opt_heater3.grid(row=5, column=5)
+
         ###BUTTONS###
 ##        b_set_time = tk.Button(self.frame_other, text='Ustaw czas',
 ##                               command=lambda: self.set_time(self.opt_men1, self.opt_men2, self.opt_men3, self.opt_men4))
@@ -188,10 +193,11 @@ class MyApp:
         ##confg socket switches##
         time_off, time_on = self.set_time(self.opt_men1, self.opt_men2, self.opt_men3, self.opt_men4)        
         self.time_swith_func(time, time_off, time_on)
-        #try read temp
+        #reads temp and update temp_container
         self.insert_to_temp_container(time)
+        #reads seted temp from optionmenus
+        self.get_temp_from_bars(self.opt_heater1, self.opt_heater2, self.opt_heater3)
         ###Update root window delay 1s###
-
         self.root.after(1000, self.update_time)
         
     def outside_ds18b20(self):
@@ -229,6 +235,27 @@ class MyApp:
     def update_labels_with_temp(self,*labels):        
         for temp, lb in zip(self.temp_container, labels):
             lb.config(text='{} C'.format(temp))
+
+    def get_temp_from_bars(self, *arg):
+        '''This function reads seted temp form optmenus and return list with int temperature.
+        Second step this finction is config label wiget responslible for viwe seted temp'''
+        # 1 , 2 ,4 heaters
+        try:
+            container = [int(opt.get_data()) for opt in arg]
+            salon, room1, kitchen = container
+            self.view_seted_temp.config(
+                text='Ustawienie\nSalon: {}\nPokój1: {}\nLazienka: {}'.format(salon,room1,kitchen))
+            print(container)
+        except ValueError as err:
+            print('ustaw temperature', err)
+        else:
+            return container
+
+    def compare_two_temps(self):
+        '''This function compare readed temperature form sensor nad seted temperature from optmenus.
+        Next turn turn on or off relay to "TERMOSTAT" in heater.
+        In next step config optmenus bars e.g change bg clor'''
+        pass
     
         
     def main(self):
