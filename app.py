@@ -87,7 +87,8 @@ class MyApp:
         self.lb_show_status.grid(row=6, column=0,columnspan=2, stick='W')
         self.lb_show_set_heaters = tk.Label(master=self.frame_other, text='Właczenia ciepło')
         self.lb_show_set_heaters.grid(row=3, column=0,columnspan=2, stick='W')
-
+        self.lb_show_status_heaters = tk.Label(master=self.frame_other, text='heeaters status')
+        self.lb_show_status_heaters.grid(row=8, column=0, columnspan=2, stick='W')
         ###TEMP LABELS###
         ##view rooms##
         self.view_room1 = tk.Label(master=self.frame_other, text='Na zewnatrz: ', font=('Arial',10,'bold'))
@@ -165,15 +166,32 @@ class MyApp:
             s_off_h, s_off_m, s_on_h, s_on_m= func(arg)
             time1 = datetime.time(hour=s_off_h, minute=s_off_m)
             time2 = datetime.time(hour=s_on_h, minute=s_on_m)
-            self.lb_show_status.config(text='Gniazda:\nOFF {}\nON {}'.format(time1, time2), font=('Arial', 12), fg='green')            
-        except ValueError:            
-            self.lb_show_status.config(text='Ustaw czas!', fg='red', font=('Arial', 14))
+        except ValueError:
             return 0,0
         except:
             print('Other err in set_time!!')
             pass
         else:            
-            return time1, time2        
+            return time1, time2
+
+    def time_switch_func2(self, current_time, off, on):
+        '''test func'''
+        print('{} < {} < {}'.format(on, current_time, off))
+        try:
+            self.lb_show_status_heaters.config(text='HEATERS:\nON {}\nOFF {}'.format(on, off), font=('Arial', 12),
+                                       fg='green')
+            if on <= current_time <= off:
+                status = 1
+                print(status,'new f')
+                return True
+            else:
+                status = 0
+                print(status, 'new f')
+                return False
+        except TypeError:
+            self.lb_show_status_heaters.config(text='Ustaw czas! - HEATERS', fg='red', font=('Arial', 14))
+            print('ustaw poprawnie czas')
+
         
     def time_swith_func(self, current_time, shut_down, swith_on):
         '''this function swith releay to on and off depends on given arg.
@@ -182,17 +200,20 @@ class MyApp:
             (open circuit - sockets in room are without current otherwise sockets are on voltage)'''
 ##        print(current_time, shut_down, swith_on)        
         try:
+            self.lb_show_status.config(text='Gniazda:\nOFF {}\nON {}'.format(shut_down, swith_on), font=('Arial', 12),
+                                       fg='green')
             if shut_down <= current_time <= swith_on:
                 status = 1
-##                print(status)
+##              print(status)
                 #pin(self.PIN_SOCKETS,status)
                 return True
             else:
                 status = 0
-##                print(status)
+##              print(status)
                 #pin(self.PIN_SOCKETS,status)
                 return False
         except TypeError:
+            self.lb_show_status.config(text='Ustaw czas!', fg='red', font=('Arial', 14))
             # print('ustaw poprawnie czas')
             pass
         except Exception as err:
@@ -213,11 +234,11 @@ class MyApp:
         self.time_swith_func(time, time_off, time_on)
         ##config heaters switches##
         h_time_off, h_time_on = self.set_time(self.opt_men5, self.opt_men6, self.opt_men7, self.opt_men8)
-
         #reads temp and update temp_container
         self.insert_to_temp_container(time)
         #reads seted temp from optionmenus
-        self.get_temp_from_bars(self.opt_heater1, self.opt_heater2, self.opt_heater3)
+        if self.time_switch_func2(time, h_time_on, h_time_off):
+            self.get_temp_from_bars(self.opt_heater1, self.opt_heater2, self.opt_heater3)
         ###Update root window delay 1s###
         self.root.after(1000, self.update_time)
         
@@ -293,10 +314,10 @@ class MyApp:
         #temperature form main container#
         temp_from_sensors = self.temp_container[1:4]
         heaters_pins = [self.PIN_HEATER1, self.PIN_HEATER2, self.PIN_HEATER3]
-        for sensor_temp, seted_temp, s_pin, heat_pin, opt_m in zip(temp_from_sensors, seted_temps, pin_list, heaters_pins,optmenus):
+        for sensor_temp, seted_temp, s_pin, heat_pin, opt_m in zip(temp_from_sensors, seted_temps, pin_list, heaters_pins, optmenus):
             if type(sensor_temp) != tuple:
                 try:                    
-                    if sensor_temp <= seted_temp:
+                    if sensor_temp <= seted_temp: #
                         status = 1
 ##                        print('for {} status {}'.format(s_pin, status))
                         opt_m.config(bg=self.HOT)
