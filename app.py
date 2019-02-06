@@ -50,17 +50,21 @@ class MyApp:
     frame_time.grid(row=0,column=2, stick='N')
     frame_other = tk.Frame(master=root)
     frame_other.grid(row=0)
-    PIN_SOCKETS = 21
+    PIN_SOCKETS = 14
     ###TEMP PINS###
-    PIN_OUTSIDE = 12 #0
-    PIN_SALON = 26   #1
-    PIN_POKOJ1 = 20  #2
-    PIN_POKOJ2 = 16  #3
+    PIN_OUTSIDE = 21 #0
+    PIN_SALON = 7   #1
+    PIN_POKOJ1 = 12  #2
+    PIN_POKOJ2 = 20  #3
     PIN_KUCHNIA = 12 #4
-    # colors#
+    PIN_WC = 8
+    ###HETERS PINS###
+    PIN_HEATER1 = 13
+    PIN_HEATER2 = 19
+    PIN_HEATER3 = 26
+    ###COLORS###
     HOT = 'tomato'
     COLD = 'light sky blue'
-
     ###KEEP CURENT TEMPERATURE IN ROOMS where look abowe###
     temp_container = [0,0,0,0,0,0]
     
@@ -149,7 +153,7 @@ class MyApp:
             time2 = datetime.time(hour=s_on_h, minute=s_on_m)
             self.lb_show_status.config(text='Gniazda OFF {}\nGniazda ON {}'.format(time1, time2), font=('Arial', 12), fg='green')            
         except ValueError:            
-            self.lb_show_status.config(text='Ustaw czas', fg='red', font=('Arial', 14))
+            self.lb_show_status.config(text='Ustaw czas!', fg='red', font=('Arial', 14))
             return 0,0
         except:
             print('Other err in set_time!!')
@@ -223,13 +227,13 @@ class MyApp:
             ds18b20 = self.outside_ds18b20()
             self.temp_container[is_tenth] = ds18b20
             # print(self.temp_container)
-        elif 1 < is_tenth < 5:
+        elif 1 < is_tenth < 6:
             print('dth11')
             dht11 = self.outside_DHT11()
             self.temp_container[is_tenth] = dht11
             # print(self.temp_container)
         self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3,
-                                     self.view_temp4, self.view_temp5)
+                                     self.view_temp4, self.view_temp5, self.view_temp6)
 
             
     def update_labels_with_temp(self,*labels):        
