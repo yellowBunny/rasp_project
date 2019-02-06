@@ -57,6 +57,9 @@ class MyApp:
     PIN_POKOJ1 = 20  #2
     PIN_POKOJ2 = 16  #3
     PIN_KUCHNIA = 12 #4
+    # colors#
+    HOT = 'tomato'
+    COLD = 'light sky blue'
 
     ###KEEP CURENT TEMPERATURE IN ROOMS where look abowe###
     temp_container = [0,0,0,0,0,0]
@@ -71,9 +74,9 @@ class MyApp:
         lb1.grid(row=0, column = 0)
         lb2 = tk.Label(master=self.frame_other, text='Ustaw minute')
         lb2.grid(row=0,column=1)
-        self.lb_show_time = tk.Label(master=self.frame_time, text='time', font=('Arial',18), fg='blue')
+        self.lb_show_time = tk.Label(master=self.frame_time, text='time', font=('Arial',18), fg='blue2')
         self.lb_show_time.grid(row=0, column=0, stick='W')
-        self.lb_show_date = tk.Label(master=self.frame_time, text='date', font=('Arial',18), fg='green')
+        self.lb_show_date = tk.Label(master=self.frame_time, text='date', font=('Arial',18), fg='purple3')
         self.lb_show_date.grid(row=1, column=0, stick='W')
         self.lb_show_status = tk.Label(master=self.frame_other, text = 'status')
         self.lb_show_status.grid(row=5, column=0)
@@ -121,9 +124,6 @@ class MyApp:
         self.opt_men4 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
         self.opt_men4.grid(row=2,column=1)
         ##choose temperature when heaters valve turn on or turn off
-        #colors#
-        heat = 'tomato'
-        cold = 'light sky blue'
         temp_range = (19,24)
         self.opt_heater1 = MyOptionMenu(window=self.frame_other, title='salon', n=temp_range, font=fonts[1])
         self.opt_heater1.grid(row=2, column=5)
@@ -149,7 +149,7 @@ class MyApp:
             time2 = datetime.time(hour=s_on_h, minute=s_on_m)
             self.lb_show_status.config(text='Gniazda OFF {}\nGniazda ON {}'.format(time1, time2), font=('Arial', 12), fg='green')            
         except ValueError:            
-            self.lb_show_status.config(text='uzupełnij pola', fg='red')
+            self.lb_show_status.config(text='Ustaw czas', fg='red', font=('Arial', 14))
             return 0,0
         except:
             print('Other err in set_time!!')
@@ -175,7 +175,7 @@ class MyApp:
                 #pin(self.PIN_SOCKETS,status)
                 return False
         except TypeError:
-            print('ustaw poprawnie czas')
+            # print('ustaw poprawnie czas')
             pass
         except Exception as err:
             print('other err in:\n{}==> {}'.format(self.time_swith_func.__name__, err))           
@@ -203,11 +203,11 @@ class MyApp:
     def outside_ds18b20(self):
         'to read temp from module'
         # print('ds18b20 here')
-        return random.randint(0,100)
+        return random.randint(16,30)
 
     def outside_DHT11(self):
         # print('DHT11 here')
-        return random.randint(-100,0)
+        return random.randint(16,30)
 
 
     def insert_to_temp_container(self, time):
@@ -222,12 +222,12 @@ class MyApp:
             print('ds18b20')
             ds18b20 = self.outside_ds18b20()
             self.temp_container[is_tenth] = ds18b20
-            print(self.temp_container)
+            # print(self.temp_container)
         elif 1 < is_tenth < 5:
             print('dth11')
             dht11 = self.outside_DHT11()
             self.temp_container[is_tenth] = dht11
-            print(self.temp_container)
+            # print(self.temp_container)
         self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3,
                                      self.view_temp4, self.view_temp5)
 
@@ -239,23 +239,37 @@ class MyApp:
     def get_temp_from_bars(self, *arg):
         '''This function reads seted temp form optmenus and return list with int temperature.
         Second step this finction is config label wiget responslible for viwe seted temp'''
-        # 1 , 2 ,4 heaters
         try:
             container = [int(opt.get_data()) for opt in arg]
             salon, room1, kitchen = container
             self.view_seted_temp.config(
-                text='Ustawienie\nSalon: {}\nPokój1: {}\nLazienka: {}'.format(salon,room1,kitchen))
-            print(container)
+                text='Ustawienie\nSalon: {}\nPokój1: {}\nLazienka: {}'.format(salon,room1,kitchen), fg='green')
+            self.compare_two_temps(container, ['pin1','pin2','pin3'],
+                                   self.opt_heater1, self.opt_heater2, self.opt_heater3)
         except ValueError as err:
-            print('ustaw temperature', err)
+            # print('ustaw temperature', err)
+            self.view_seted_temp.config(
+                text='Ustaw temperature!', fg='red', font=('Arial', 14))
         else:
             return container
 
-    def compare_two_temps(self):
+    def compare_two_temps(self, seted_temps, pin_list, *optmenus):
         '''This function compare readed temperature form sensor nad seted temperature from optmenus.
         Next turn turn on or off relay to "TERMOSTAT" in heater.
         In next step config optmenus bars e.g change bg clor'''
-        pass
+        #temperature form main container#
+        temp_from_sensors = self.temp_container[1:3] + [self.temp_container[4]]
+
+        for sensor_temp, seted_temp, pin, opt_m in zip(temp_from_sensors, seted_temps, pin_list, optmenus):
+            if sensor_temp <= seted_temp:
+                status = 1
+                print('for {} status {}'.format(pin, status))
+                opt_m.config(bg=self.HOT)
+            else:
+                status = 0
+                print('for {} status {}'.format(pin, status))
+                opt_m.config(bg=self.COLD)
+
     
         
     def main(self):
