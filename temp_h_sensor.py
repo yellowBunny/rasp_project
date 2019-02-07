@@ -1,18 +1,21 @@
 import Adafruit_DHT
 from datetime import datetime 
 
-
-def start(pin):
-    # set date
-    date = datetime.now().strftime('%d-%m-%Y, %X')
-    # set gpio BCM pin pin  is inpoted arg in func
-    
-    # set sensor DHT11
-    sensor = Adafruit_DHT.DHT11
-    # set temp and humanidity
-    humanidity, temp = Adafruit_DHT.read_retry(sensor, pin)
-    print('date: {}\ntemp: {} C\nhumanidity: {} %'.format(date,temp, humanidity))    
-    return temp, humanidity, date
+class DHT11:    
+    def grab_temp(self, pin=0):
+        if pin:                
+            # set sensor DHT11        
+            sensor = Adafruit_DHT.DHT11
+            # set temp and humanidity
+            humanidity, temp = Adafruit_DHT.read_retry(sensor, pin)
+            print('temp: {} C\nhumanidity: {} %'.format(temp, humanidity))
+            return temp, humanidity        
+        else:
+            print('Set Pin!!')
+            raise ValueError
+            
+            
 
 if __name__ =='__main__':
-    print(start(16))
+    instance = DHT11()
+    instance.grab_temp(20)
