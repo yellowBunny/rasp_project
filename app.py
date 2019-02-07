@@ -2,6 +2,7 @@ import tkinter as tk
 import datetime
 #from dioda import set_pin as pin
 import random
+import temp_sensor as temp_ds, temp_h_sensor as temp_dht
 
 class MyListBox(tk.Listbox):
     def __init__(self, window, n, width, height):
@@ -55,8 +56,8 @@ class MyApp:
     PIN_OUTSIDE = 21 #0
     PIN_SALON = 7   #1
     PIN_POKOJ1 = 12  #2
-    PIN_POKOJ2 = 20  #3
-    PIN_KUCHNIA = 12 #4
+    PIN_POKOJ2 = 16  #3
+    PIN_KUCHNIA = 20 #4
     PIN_WC = 8
     ###HETERS PINS###
     PIN_HEATER1 = 13
@@ -206,11 +207,12 @@ class MyApp:
         
     def outside_ds18b20(self):
         'to read temp from module'
-        # print('ds18b20 here')
-        return random.randint(16,30)
+        print('ds18b20 here')
+        instance = temp_ds.DS18b20()        
+        return instance.grab_temp()[0] # brackets is responsible for sensor applay to pin gpio 4
 
-    def outside_DHT11(self):
-        # print('DHT11 here')
+    def outside_DHT11(self, pin):
+        print('DHT11 here is pin{}'.format(pin))
         return random.randint(16,30)
 
 
@@ -220,16 +222,15 @@ class MyApp:
         func to read ds18b20 sensor - two first cells in list [:2]
         func to read dht11 sensor -  other cells [2:]'''
         print(time.second)
+        pins = [self.PIN_OUTSIDE, self.PIN_SALON, self.PIN_POKOJ1, self.PIN_POKOJ2, self.PIN_KUCHNIA, self.PIN_WC]
         f = lambda t: int(t * .1) if t * .1 % 1 == 0 else -1
         is_tenth = f(time.second)
-        if is_tenth == 0 or is_tenth == 1:
-            print('ds18b20')
+        if is_tenth == 0:            
             ds18b20 = self.outside_ds18b20()
             self.temp_container[is_tenth] = ds18b20
             # print(self.temp_container)
-        elif 1 < is_tenth < 6:
-            print('dth11')
-            dht11 = self.outside_DHT11()
+        elif 0 < is_tenth < 6:            
+            dht11 = self.outside_DHT11(pins[is_tenth])
             self.temp_container[is_tenth] = dht11
             # print(self.temp_container)
         self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3,
