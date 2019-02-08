@@ -1,6 +1,6 @@
 import tkinter as tk
 import datetime
-#from dioda import set_pin as pin
+from dioda import set_pin as pin
 import random
 import temp_sensor as temp_ds, temp_h_sensor as temp_dht
 
@@ -55,10 +55,10 @@ class MyApp:
     ###TEMP PINS###
     PIN_OUTSIDE = 21 #0
     PIN_SALON = 7   #1
-    PIN_POKOJ1 = 12  #2
-    PIN_POKOJ2 = 16  #3
-    PIN_KUCHNIA = 20 #4
-    PIN_WC = 8
+    PIN_POKOJ1 = 12 #2
+    PIN_KUCHNIA = 16 #3
+    PIN_POKOJ2 = 20  #4     
+    PIN_WC = 8 #5
     ###HETERS PINS###
     PIN_HEATER1 = 13
     PIN_HEATER2 = 19
@@ -93,9 +93,9 @@ class MyApp:
         self.view_room2.grid(row=2, column=3)
         self.view_room3 = tk.Label(master=self.frame_other, text='Pokoj 1: ', font=('Arial',10,'bold'))
         self.view_room3.grid(row=3, column=3)
-        self.view_room4 = tk.Label(master=self.frame_other, text='Pokoj 2: ', font=('Arial',10,'bold'))
+        self.view_room4 = tk.Label(master=self.frame_other, text='Kuchnia: ', font=('Arial',10,'bold'))
         self.view_room4.grid(row=4, column=3)
-        self.view_room5 = tk.Label(master=self.frame_other, text='Kuchnia: ', font=('Arial',10,'bold'))
+        self.view_room5 = tk.Label(master=self.frame_other, text='Pokoj 2 ', font=('Arial',10,'bold'))
         self.view_room5.grid(row=5, column=3)
         self.view_room6 = tk.Label(master=self.frame_other, text='Łazienka: ', font=('Arial',10,'bold'))
         self.view_room6.grid(row=6, column=3)
@@ -114,7 +114,7 @@ class MyApp:
         self.view_temp6.grid(row=6, column=4)
         ##view seted temperature in each room##
         self.view_seted_temp = tk.Label(master=self.frame_time,
-                                        text='Ustawienie\nSalon: {}\nPokój1: {}\nLazienka: {}'.format('n/a','n/a','n/a'), font= fonts[0])
+                                        text='Ustawienie\nSalon: {}\nPokój1: {}\nKuchnia: {}'.format('n/a','n/a','n/a'), font= fonts[0])
         self.view_seted_temp.grid(row=3, column=0, stick='W')
         
         
@@ -129,14 +129,14 @@ class MyApp:
         self.opt_men4 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
         self.opt_men4.grid(row=2,column=1)
         ##choose temperature when heaters valve turn on or turn off
-        temp_range = (19,24)
+        temp_range = (19,30)
         self.opt_heater1 = MyOptionMenu(window=self.frame_other, title='salon', n=temp_range, font=fonts[1])
         self.opt_heater1.grid(row=2, column=5)
         self.opt_heater2 = MyOptionMenu(window=self.frame_other, title='Pokój1', n=temp_range, font=fonts[1])
         self.opt_heater2.grid(row=3,column=5)
         self.opt_heater3 = MyOptionMenu(window=self.frame_other,
                                         title='Kuchnia', n=temp_range, font=fonts[1])
-        self.opt_heater3.grid(row=5, column=5)
+        self.opt_heater3.grid(row=4, column=5)
 
         ###BUTTONS###
 ##        b_set_time = tk.Button(self.frame_other, text='Ustaw czas',
@@ -226,7 +226,7 @@ class MyApp:
         func to read ds18b20 sensor - two first cells in list [:2]
         func to read dht11 sensor -  other cells [2:]'''
         print(time.second)
-        pins = [self.PIN_OUTSIDE, self.PIN_SALON, self.PIN_POKOJ1, self.PIN_POKOJ2, self.PIN_KUCHNIA, self.PIN_WC]
+        pins = [self.PIN_OUTSIDE, self.PIN_SALON, self.PIN_POKOJ1, self.PIN_KUCHNIA, self.PIN_POKOJ2, self.PIN_WC]
         f = lambda t: int(t * .1) if t * .1 % 1 == 0 else -1
         is_tenth = f(time.second)
         if is_tenth == 0:            
@@ -260,7 +260,7 @@ class MyApp:
             container = [int(opt.get_data()) for opt in arg]
             salon, room1, kitchen = container
             self.view_seted_temp.config(
-                text='Ustawienie\nSalon: {}\nPokój1: {}\nLazienka: {}'.format(salon,room1,kitchen), fg='green')
+                text='Ustawienie\nSalon: {}\nPokój1: {}\nKuchnia: {}'.format(salon,room1,kitchen), fg='green')
             self.compare_two_temps(container, ['pin1','pin2','pin3'],
                                    self.opt_heater1, self.opt_heater2, self.opt_heater3)
         except ValueError as err:
@@ -275,34 +275,37 @@ class MyApp:
         Next turn turn on or off relay to "TERMOSTAT" in heater.
         In next step config optmenus bars e.g change bg clor'''
         #temperature form main container#
-        temp_from_sensors = self.temp_container[1:3] + [self.temp_container[4]]
-
-        for sensor_temp, seted_temp, pin, opt_m in zip(temp_from_sensors, seted_temps, pin_list, optmenus):
+        temp_from_sensors = self.temp_container[1:4]
+        heaters_pins = [self.PIN_HEATER1, self.PIN_HEATER2, self.PIN_HEATER3]
+        for sensor_temp, seted_temp, s_pin, heat_pin, opt_m in zip(temp_from_sensors, seted_temps, pin_list, heaters_pins,optmenus):
             if type(sensor_temp) != tuple:
                 try:                    
                     if sensor_temp <= seted_temp:
                         status = 1
-                        print('for {} status {}'.format(pin, status))
+                        print('for {} status {}'.format(s_pin, status))
                         opt_m.config(bg=self.HOT)
                     else:
                         status = 0
-                        print('for {} status {}'.format(pin, status))
+                        print('for {} status {}'.format(s_pin, status))
                         opt_m.config(bg=self.COLD)
+                        
                 except TypeError as err:
                     print(err,'temperatura nie została podana jako int')
             else:
                 if sensor_temp[0] <= seted_temp:
                     status = 1
-                    print('for {} status {}'.format(pin, status))
+                    print('for {} status {}'.format(s_pin, status))
                     opt_m.config(bg=self.HOT)
+##                    print(heat_pin)
+                    pin(heat_pin, status)
                 else:
                     status = 0
-                    print('for {} status {}'.format(pin, status))
+                    print('for {} status {}'.format(s_pin, status))
                     opt_m.config(bg=self.COLD)
+##                    print(heat_pin)
+                    pin(heat_pin, status)
             
-                
-
-    
+                    
         
     def main(self):
         self.wigets()
