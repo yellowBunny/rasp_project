@@ -19,3 +19,5 @@ class DHT11:
 if __name__ =='__main__':
     instance = DHT11()
     instance.grab_temp(20)
+    instance.grab_temp(16)
+    instance.grab_temp(12)

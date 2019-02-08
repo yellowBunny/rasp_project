@@ -42,6 +42,7 @@ class DS18b20:
 if __name__ == '__main__':
     #print(read_temp(sensor_path()[2]))
     read = DS18b20()
+    print(read.grab_temp())
     
         
         

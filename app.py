@@ -75,29 +75,29 @@ class MyApp:
     def wigets(self):
         fonts = [('Arial', 10),('Arial', 8)]
         ###LABELS###
-        lb1 = tk.Label(master=self.frame_other, text='Ustaw godzine')
+        lb1 = tk.Label(master=self.frame_other, text='Godziny')
         lb1.grid(row=0, column = 0)
-        lb2 = tk.Label(master=self.frame_other, text='Ustaw minute')
+        lb2 = tk.Label(master=self.frame_other, text='Minuty')
         lb2.grid(row=0,column=1)
         self.lb_show_time = tk.Label(master=self.frame_time, text='time', font=('Arial',18), fg='blue2')
         self.lb_show_time.grid(row=0, column=0, stick='W')
         self.lb_show_date = tk.Label(master=self.frame_time, text='date', font=('Arial',18), fg='purple3')
         self.lb_show_date.grid(row=1, column=0, stick='W')
         self.lb_show_status = tk.Label(master=self.frame_other, text = 'status')
-        self.lb_show_status.grid(row=5, column=0)
+        self.lb_show_status.grid(row=5, column=0,columnspan=2, stick='W')
         ###TEMP LABELS###
         ##view rooms##
-        self.view_room1 = tk.Label(master=self.frame_other, text='Na zewnatrz: ')
+        self.view_room1 = tk.Label(master=self.frame_other, text='Na zewnatrz: ', font=('Arial',10,'bold'))
         self.view_room1.grid(row=1, column=3)
-        self.view_room2 = tk.Label(master=self.frame_other, text='Salon: ')
+        self.view_room2 = tk.Label(master=self.frame_other, text='Salon: ', font=('Arial',10,'bold'))
         self.view_room2.grid(row=2, column=3)
-        self.view_room3 = tk.Label(master=self.frame_other, text='Pokoj 1: ')
+        self.view_room3 = tk.Label(master=self.frame_other, text='Pokoj 1: ', font=('Arial',10,'bold'))
         self.view_room3.grid(row=3, column=3)
-        self.view_room4 = tk.Label(master=self.frame_other, text='Pokoj 2: ')
+        self.view_room4 = tk.Label(master=self.frame_other, text='Pokoj 2: ', font=('Arial',10,'bold'))
         self.view_room4.grid(row=4, column=3)
-        self.view_room5 = tk.Label(master=self.frame_other, text='Kuchnia: ')
+        self.view_room5 = tk.Label(master=self.frame_other, text='Kuchnia: ', font=('Arial',10,'bold'))
         self.view_room5.grid(row=5, column=3)
-        self.view_room6 = tk.Label(master=self.frame_other, text='Łazienka: ')
+        self.view_room6 = tk.Label(master=self.frame_other, text='Łazienka: ', font=('Arial',10,'bold'))
         self.view_room6.grid(row=6, column=3)
         ##view temp in rooms##
         self.view_temp1 = tk.Label(master=self.frame_other, text='temp1')
@@ -152,7 +152,7 @@ class MyApp:
             s_off_h, s_off_m, s_on_h, s_on_m= func(arg)
             time1= datetime.time(hour=s_off_h, minute=s_off_m)
             time2 = datetime.time(hour=s_on_h, minute=s_on_m)
-            self.lb_show_status.config(text='Gniazda OFF {}\nGniazda ON {}'.format(time1, time2), font=('Arial', 12), fg='green')            
+            self.lb_show_status.config(text='Gniazda:\nOFF {}\nON {}'.format(time1, time2), font=('Arial', 12), fg='green')            
         except ValueError:            
             self.lb_show_status.config(text='Ustaw czas!', fg='red', font=('Arial', 14))
             return 0,0
@@ -171,12 +171,12 @@ class MyApp:
         try:
             if shut_down <= current_time <= swith_on:
                 status = 1
-                print(status)
+##                print(status)
                 #pin(self.PIN_SOCKETS,status)
                 return True
             else:
                 status = 0
-                print(status)
+##                print(status)
                 #pin(self.PIN_SOCKETS,status)
                 return False
         except TypeError:
@@ -213,8 +213,12 @@ class MyApp:
 
     def outside_DHT11(self, pin):
         print('DHT11 here is pin{}'.format(pin))
-        return random.randint(16,30)
-
+        instance = temp_dht.DHT11()        
+        return instance.grab_temp(pin) #when we  have brackets here method grab_temp return only temp. In other case return tuple with temperature na humanidity
+    
+    def sensor_n_c_func(self, pin):
+        print('pin {} is not connected to sensor'.format(pin))
+        return 'N/C'
 
     def insert_to_temp_container(self, time):
         '''this function insert readed temperature for sensor to list called temp_container.
@@ -229,17 +233,25 @@ class MyApp:
             ds18b20 = self.outside_ds18b20()
             self.temp_container[is_tenth] = ds18b20
             # print(self.temp_container)
-        elif 0 < is_tenth < 6:            
+        elif 0 < is_tenth < 4:            
             dht11 = self.outside_DHT11(pins[is_tenth])
             self.temp_container[is_tenth] = dht11
-            # print(self.temp_container)
+            # print(self.temp_container)        
+        elif 4 <= is_tenth < 6:            
+            n_c = self.sensor_n_c_func(pins[is_tenth])
+            self.temp_container[is_tenth] = n_c
+            
         self.update_labels_with_temp(self.view_temp1, self.view_temp2, self.view_temp3,
                                      self.view_temp4, self.view_temp5, self.view_temp6)
 
             
     def update_labels_with_temp(self,*labels):        
-        for temp, lb in zip(self.temp_container, labels):
-            lb.config(text='{} C'.format(temp))
+        for arr, lb in zip(self.temp_container, labels):
+            if type(arr) != tuple:
+                lb.config(text='{} {}C'.format(arr, chr(186))) #chr(186) - stopni (degrees)
+            else:
+                temp, humanidity = arr                
+                lb.config(text='{} {}C {} %'.format(temp, chr(186), humanidity))
 
     def get_temp_from_bars(self, *arg):
         '''This function reads seted temp form optmenus and return list with int temperature.
@@ -266,14 +278,29 @@ class MyApp:
         temp_from_sensors = self.temp_container[1:3] + [self.temp_container[4]]
 
         for sensor_temp, seted_temp, pin, opt_m in zip(temp_from_sensors, seted_temps, pin_list, optmenus):
-            if sensor_temp <= seted_temp:
-                status = 1
-                print('for {} status {}'.format(pin, status))
-                opt_m.config(bg=self.HOT)
+            if type(sensor_temp) != tuple:
+                try:                    
+                    if sensor_temp <= seted_temp:
+                        status = 1
+                        print('for {} status {}'.format(pin, status))
+                        opt_m.config(bg=self.HOT)
+                    else:
+                        status = 0
+                        print('for {} status {}'.format(pin, status))
+                        opt_m.config(bg=self.COLD)
+                except TypeError as err:
+                    print(err,'temperatura nie została podana jako int')
             else:
-                status = 0
-                print('for {} status {}'.format(pin, status))
-                opt_m.config(bg=self.COLD)
+                if sensor_temp[0] <= seted_temp:
+                    status = 1
+                    print('for {} status {}'.format(pin, status))
+                    opt_m.config(bg=self.HOT)
+                else:
+                    status = 0
+                    print('for {} status {}'.format(pin, status))
+                    opt_m.config(bg=self.COLD)
+            
+                
 
     
         
