@@ -1,6 +1,10 @@
 import Adafruit_DHT
 from datetime import datetime 
 
+class PinConectionError(Exception):
+    def __ini__(self,mgs):
+        Exception.__init__(self,mgs)
+        
 class DHT11:    
     def grab_temp(self, pin=0):
         if pin:                
@@ -12,12 +16,12 @@ class DHT11:
             return temp, humanidity        
         else:
             print('Set Pin!!')
-            raise ValueError
+            raise PinConectionError('Check GPIO pin connection and try again')
             
             
 
 if __name__ =='__main__':
     instance = DHT11()
-    instance.grab_temp(20)
-    instance.grab_temp(16)
-    instance.grab_temp(12)
+    instance.grab_temp(1)
+##    instance.grab_temp(16)
+##    instance.grab_temp(12)

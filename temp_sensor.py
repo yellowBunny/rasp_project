@@ -3,6 +3,11 @@ from time import sleep
 import os
 import sys
 
+class PinConectionError(Exception):
+    def __ini__(self,mgs):
+        Exception.__init__(self,mgs)
+        
+    
 class DS18b20:        
     def sensor_id_and_directory(self):
         '''This  method finds id's sensors saved as directory.
@@ -10,7 +15,8 @@ class DS18b20:
         try:    
             file_list = os.listdir('/sys/devices/w1_bus_master1/')            
             sensors_list = ['/sys/bus/w1/devices/{}/w1_slave'.format(p) for p in file_list if
-                       re.search(r'[1-9]+[-]\d+',p)]          
+                       re.search(r'[1-9]+[-]\d+',p)]
+            print(sensors_list)
         except Exception as err:
             print('Some err in {} {}'.function('sensor_id_and_directory', err))
             return False    
@@ -21,7 +27,7 @@ class DS18b20:
                 return sensors_list                
             else:
                 print('sensor not detected')
-                return False   
+                raise PinConectionError('Check GPIO pin 4 connection and try again')  
 
     def read_temp(self, path='',name=''):    
         '''Reading temp in Celsius degree, return temp in float'''

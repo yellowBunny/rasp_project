@@ -53,7 +53,7 @@ class MyApp:
     frame_other.grid(row=0)
     PIN_SOCKETS = 14
     ###TEMP PINS###
-    PIN_OUTSIDE = 21 #0
+    PIN_OUTSIDE = 4 #0
     PIN_SALON = 7   #1
     PIN_POKOJ1 = 12 #2
     PIN_KUCHNIA = 16 #3
@@ -282,11 +282,11 @@ class MyApp:
                 try:                    
                     if sensor_temp <= seted_temp:
                         status = 1
-                        print('for {} status {}'.format(s_pin, status))
+##                        print('for {} status {}'.format(s_pin, status))
                         opt_m.config(bg=self.HOT)
                     else:
                         status = 0
-                        print('for {} status {}'.format(s_pin, status))
+##                        print('for {} status {}'.format(s_pin, status))
                         opt_m.config(bg=self.COLD)
                         
                 except TypeError as err:
@@ -294,13 +294,13 @@ class MyApp:
             else:
                 if sensor_temp[0] <= seted_temp:
                     status = 1
-                    print('for {} status {}'.format(s_pin, status))
+##                    print('for {} status {}'.format(s_pin, status))
                     opt_m.config(bg=self.HOT)
 ##                    print(heat_pin)
                     pin(heat_pin, status)
                 else:
                     status = 0
-                    print('for {} status {}'.format(s_pin, status))
+##                    print('for {} status {}'.format(s_pin, status))
                     opt_m.config(bg=self.COLD)
 ##                    print(heat_pin)
                     pin(heat_pin, status)
