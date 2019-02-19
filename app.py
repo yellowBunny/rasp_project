@@ -1,8 +1,8 @@
 import tkinter as tk
 import datetime
-from dioda import set_pin as pin
+# from dioda import set_pin as pin
 import random
-import temp_sensor as temp_ds, temp_h_sensor as temp_dht
+# import temp_sensor as temp_ds, temp_h_sensor as temp_dht
 
 class MyListBox(tk.Listbox):
     def __init__(self, window, n, width, height):
@@ -84,7 +84,10 @@ class MyApp:
         self.lb_show_date = tk.Label(master=self.frame_time, text='date', font=('Arial',18), fg='purple3')
         self.lb_show_date.grid(row=1, column=0, stick='W')
         self.lb_show_status = tk.Label(master=self.frame_other, text = 'status')
-        self.lb_show_status.grid(row=5, column=0,columnspan=2, stick='W')
+        self.lb_show_status.grid(row=6, column=0,columnspan=2, stick='W')
+        self.lb_show_set_heaters = tk.Label(master=self.frame_other, text='Właczenia ciepło')
+        self.lb_show_set_heaters.grid(row=3, column=0,columnspan=2, stick='W')
+
         ###TEMP LABELS###
         ##view rooms##
         self.view_room1 = tk.Label(master=self.frame_other, text='Na zewnatrz: ', font=('Arial',10,'bold'))
@@ -117,7 +120,6 @@ class MyApp:
                                         text='Ustawienie\nSalon: {}\nPokój1: {}\nKuchnia: {}'.format('n/a','n/a','n/a'), font= fonts[0])
         self.view_seted_temp.grid(row=3, column=0, stick='W')
         
-        
         ####OPTIONMENU####
         ##choose time to switch on/off sockets##
         self.opt_men1 = MyOptionMenu(window=self.frame_other, title='godzina', n=24, font=fonts[0])
@@ -128,6 +130,16 @@ class MyApp:
         self.opt_men3.grid(row=2,column=0)
         self.opt_men4 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
         self.opt_men4.grid(row=2,column=1)
+        ##choose time to swith on/off switchers to heaters 5-8##
+        self.opt_men5 = MyOptionMenu(window=self.frame_other, title='godzina', n=24, font=fonts[0])
+        self.opt_men5.grid(row=4, column=0)
+        self.opt_men6 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
+        self.opt_men6.grid(row=4, column=1)
+        self.opt_men7 = MyOptionMenu(window=self.frame_other, title='godzina', n=24, font=fonts[0])
+        self.opt_men7.grid(row=5, column=0)
+        self.opt_men8 = MyOptionMenu(window=self.frame_other, title='minuta', n=60, font=fonts[1], flag=1)
+        self.opt_men8.grid(row=5, column=1)
+
         ##choose temperature when heaters valve turn on or turn off
         temp_range = (19,30)
         self.opt_heater1 = MyOptionMenu(window=self.frame_other, title='salon', n=temp_range, font=fonts[1])
@@ -137,6 +149,7 @@ class MyApp:
         self.opt_heater3 = MyOptionMenu(window=self.frame_other,
                                         title='Kuchnia', n=temp_range, font=fonts[1])
         self.opt_heater3.grid(row=4, column=5)
+
 
         ###BUTTONS###
 ##        b_set_time = tk.Button(self.frame_other, text='Ustaw czas',
@@ -150,7 +163,7 @@ class MyApp:
         try:
             func = lambda arr: [int(obj.get_data()) for obj in arr]
             s_off_h, s_off_m, s_on_h, s_on_m= func(arg)
-            time1= datetime.time(hour=s_off_h, minute=s_off_m)
+            time1 = datetime.time(hour=s_off_h, minute=s_off_m)
             time2 = datetime.time(hour=s_on_h, minute=s_on_m)
             self.lb_show_status.config(text='Gniazda:\nOFF {}\nON {}'.format(time1, time2), font=('Arial', 12), fg='green')            
         except ValueError:            
@@ -198,6 +211,9 @@ class MyApp:
         ##confg socket switches##
         time_off, time_on = self.set_time(self.opt_men1, self.opt_men2, self.opt_men3, self.opt_men4)        
         self.time_swith_func(time, time_off, time_on)
+        ##config heaters switches##
+        h_time_off, h_time_on = self.set_time(self.opt_men5, self.opt_men6, self.opt_men7, self.opt_men8)
+
         #reads temp and update temp_container
         self.insert_to_temp_container(time)
         #reads seted temp from optionmenus
