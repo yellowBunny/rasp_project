@@ -1,8 +1,8 @@
 import tkinter as tk
 import datetime
-# from dioda import set_pin as pin
+from dioda import set_pin as pin
 import random
-# import temp_sensor as temp_ds, temp_h_sensor as temp_dht
+import temp_sensor as temp_ds, temp_h_sensor as temp_dht
 
 class MyListBox(tk.Listbox):
     def __init__(self, window, n, width, height):
@@ -176,20 +176,21 @@ class MyApp:
 
     def time_switch_func2(self, current_time, off, on):
         '''test func'''
-        print('{} < {} < {}'.format(on, current_time, off))
-        try:
-            self.lb_show_status_heaters.config(text='HEATERS:\nON {}\nOFF {}'.format(on, off), font=('Arial', 12),
-                                       fg='green')
+        #print('{} < {} < {}'.format(on, current_time, off))
+        try:            
             if on <= current_time <= off:
+                self.lb_show_status_heaters.config(text='HEATERS:\nON {}\nOFF {}'.format(on, off), font=('Arial', 12),
+                                       fg='green')
                 status = 1
                 print(status,'new f')
                 return True
             else:
+                self.lb_show_status_heaters.config(text='Ustaw czas! - HEATERS', fg='red', font=('Arial', 14))
                 status = 0
                 print(status, 'new f')
                 return False
         except TypeError:
-            self.lb_show_status_heaters.config(text='Ustaw czas! - HEATERS', fg='red', font=('Arial', 14))
+            self.lb_show_status_heaters.config(text='Ustaw poprawnie czas! - HEATERS', fg='red', font=('Arial', 14))
             print('ustaw poprawnie czas')
 
         
@@ -223,22 +224,22 @@ class MyApp:
     def update_time(self):
         '''This function update root window with content'''
         ###Curent time in datetime class###
-        time = datetime.datetime.now().time()
+        self.time = datetime.datetime.now().time()
         ###Current date in str###
         date = datetime.datetime.now().date().strftime('{}/{}/{}'.format('%d','%m','%Y'))
         ###config time labels###
         self.lb_show_date.config(text=date)     
-        self.lb_show_time.config(text=time.strftime('%X'))
+        self.lb_show_time.config(text=self.time.strftime('%X'))
         ##confg socket switches##
         time_off, time_on = self.set_time(self.opt_men1, self.opt_men2, self.opt_men3, self.opt_men4)        
-        self.time_swith_func(time, time_off, time_on)
+        self.time_swith_func(self.time, time_off, time_on)
         ##config heaters switches##
-        h_time_off, h_time_on = self.set_time(self.opt_men5, self.opt_men6, self.opt_men7, self.opt_men8)
+        #h_time_off, h_time_on = self.set_time(self.opt_men5, self.opt_men6, self.opt_men7, self.opt_men8)
         #reads temp and update temp_container
-        self.insert_to_temp_container(time)
-        #reads seted temp from optionmenus
-        if self.time_switch_func2(time, h_time_on, h_time_off):
-            self.get_temp_from_bars(self.opt_heater1, self.opt_heater2, self.opt_heater3)
+        self.insert_to_temp_container(self.time)
+        
+        #reads seted temp from optionmenus          
+        self.get_temp_from_bars(self.opt_heater1, self.opt_heater2, self.opt_heater3)
         ###Update root window delay 1s###
         self.root.after(1000, self.update_time)
         
@@ -312,16 +313,19 @@ class MyApp:
         Next turn turn on or off relay to "TERMOSTAT" in heater.
         In next step config optmenus bars e.g change bg clor'''
         #temperature form main container#
+        h_time_off, h_time_on = self.set_time(self.opt_men5, self.opt_men6, self.opt_men7, self.opt_men8)
         temp_from_sensors = self.temp_container[1:4]
         heaters_pins = [self.PIN_HEATER1, self.PIN_HEATER2, self.PIN_HEATER3]
         for sensor_temp, seted_temp, s_pin, heat_pin, opt_m in zip(temp_from_sensors, seted_temps, pin_list, heaters_pins, optmenus):
             if type(sensor_temp) != tuple:
                 try:                    
-                    if sensor_temp <= seted_temp: #
+                    if sensor_temp <= seted_temp and self.time_switch_func2(self.time, h_time_on, h_time_off): #
                         status = 1
 ##                        print('for {} status {}'.format(s_pin, status))
                         opt_m.config(bg=self.HOT)
                     else:
+                        self.lb_show_status_heaters.config(text='HEATERS:\nON {}\nOFF {}'.format(h_time_off, h_time_on), font=('Arial', 12),
+                                       fg='green')
                         status = 0
 ##                        print('for {} status {}'.format(s_pin, status))
                         opt_m.config(bg=self.COLD)
@@ -329,13 +333,15 @@ class MyApp:
                 except TypeError as err:
                     print(err,'temperatura nie została podana jako int')
             else:
-                if sensor_temp[0] <= seted_temp:
+                if sensor_temp[0] <= seted_temp and self.time_switch_func2(self.time, h_time_on, h_time_off):
                     status = 1
 ##                    print('for {} status {}'.format(s_pin, status))
                     opt_m.config(bg=self.HOT)
 ##                    print(heat_pin)
                     pin(heat_pin, status)
                 else:
+                    self.lb_show_status_heaters.config(text='HEATERS:\nON {}\nOFF {}'.format(h_time_off, h_time_on), font=('Arial', 12),
+                                       fg='green')
                     status = 0
 ##                    print('for {} status {}'.format(s_pin, status))
                     opt_m.config(bg=self.COLD)
